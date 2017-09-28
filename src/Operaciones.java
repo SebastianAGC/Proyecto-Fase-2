@@ -1068,6 +1068,27 @@ public class Operaciones {
                 }
             }
         }*/
+        //Obteniendo los ignores
+        if(ignoreLine!=0){
+            String ignore  = fileContent.get(ignoreLine);
+            String ignoreContent = "";
+            if(!String.valueOf(ignore.charAt(ignore.length()-1)).equals(".")){
+                error = new ErrorType(19, ignoreLine);
+                return error;
+            }else{
+                ignore=ignore.replace(".", "");
+                for (int i=7; i<ignore.length();i++){
+                    ignoreContent+=String.valueOf(ignore.charAt(i));
+                }
+
+                if(!Set(ignoreContent, string, ident, charV, number)){
+                    error = new ErrorType(20, ignoreLine);
+                    return error;
+                }
+            }
+        }
+
+
         return error;
     }
 
@@ -1161,21 +1182,24 @@ public class Operaciones {
         String c="";
         String comprobacion="";
         String cadenaNumber="";
-        for (int i=0; i<4; i++){
-            caracter=String.valueOf(cadena.charAt(i));
-            comprobacion+=caracter;
+        if(cadena.length()>4){
+            for (int i=0; i<4; i++){
+                caracter=String.valueOf(cadena.charAt(i));
+                comprobacion+=caracter;
+            }
+            if(comprobacion.equals("CHR(")){
+                if(String.valueOf(cadena.charAt(cadena.length()-1)).equals(")")){
+                    for(int i=4; i<cadena.length();i++){
+                        c=String.valueOf(cadena.charAt(i));
+                        cadenaNumber+=c;
+                    }
+                    if(number(cadenaNumber, number)){
+                        correcto=true;
+                    }
+                }
+            }
         }
-        if(comprobacion.equals("CHR(")){
-           if(String.valueOf(cadena.charAt(cadena.length()-1)).equals(")")){
-               for(int i=4; i<cadena.length();i++){
-                   c=String.valueOf(cadena.charAt(i));
-                   cadenaNumber+=c;
-               }
-               if(number(cadenaNumber, number)){
-                   correcto=true;
-               }
-           }
-        }
+
         return correcto;
     }
 
@@ -1336,6 +1360,12 @@ public class Operaciones {
                 break;
             case 18:
                 System.err.println("Error de Sintaxis #18: TokenExpression no válida dentro de Tokens, en la linea "+errorLine+".");
+                break;
+            case 19:
+                System.err.println("Error de Sintaxis #19: Seccion de Ignore no termina con '.' , en la linea "+errorLine+".");
+                break;
+            case 20:
+                System.err.println("Error de Sintaxis #18: Contenido de ignore no valido, en la linea "+errorLine+".");
                 break;
             default:
                 System.out.println("No se encontraron errores. CORRECTO");
