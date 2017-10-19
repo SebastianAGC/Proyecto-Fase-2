@@ -806,10 +806,13 @@ public class Operaciones {
             String temp="";
             String bfRead;
             while((bfRead = bf.readLine())!= null){
-                text.add(bfRead);
+                if(!bfRead.equals("")){
+                    text.add(bfRead);
+                }
             }
         }catch (Exception ex){
             System.err.println("No se encontró ningun archivo :v");
+            System.exit(0);
         }
         return text;
     }
@@ -920,6 +923,9 @@ public class Operaciones {
                 if(cadena.equals("KEYWORDS")){
                     keywInit=j;
                     bandera=true;
+                }else if(cadena.equals("TOKENS")){
+                    tokensInit=j;
+                    bandera=true;
                 }else if(cadena.contains("IGNORE")) {
                     ignoreIndex=j;
                     bandera=true;
@@ -952,7 +958,7 @@ public class Operaciones {
                     return error;
                 }
 
-                parts[1]=parts[1].replace(".", "");
+                parts[1]=parts[1].substring(0,parts[1].length()-1);
                 //Comprobando que funcionen los Sets.!simulacionAFDdirecto(set, parts[1])
                 if(!Set(parts[1], string, ident, charV, number)){
                     //result = 9;
@@ -962,53 +968,56 @@ public class Operaciones {
             }
         }
 
-        //Verificando la parte de KEYWORDS
-        //ArrayList<String> keywordsContent = new ArrayList<>();
-        if(!fileContent.get(keywInit).equals("KEYWORDS")){
-            result = 10;
-            error = new ErrorType(10, keywInit);
-            return error;
-        }else{
-            for (int i=0; i<fileContent.size();i++) {
-                if(i>keywInit && i<fileContent.size()-1){
-                    if(fileContent.get(i).equals("TOKENS")){
-                        tokensInit = i;
-                        i=fileContent.size();
-                    }else{
-                        structure.getKeywordsContent().add(fileContent.get(i));
-                        //keywordsContent.add(fileContent.get(i));
+        if(keywInit!=0){
+            //Verificando la parte de KEYWORDS
+            //ArrayList<String> keywordsContent = new ArrayList<>();
+            if(!fileContent.get(keywInit).equals("KEYWORDS")){
+                result = 10;
+                error = new ErrorType(10, keywInit);
+                return error;
+            }else{
+                for (int i=0; i<fileContent.size();i++) {
+                    if(i>keywInit && i<fileContent.size()-1){
+                        if(fileContent.get(i).equals("TOKENS")){
+                            tokensInit = i;
+                            i=fileContent.size();
+                        }else{
+                            structure.getKeywordsContent().add(fileContent.get(i));
+                            //keywordsContent.add(fileContent.get(i));
+                        }
                     }
                 }
-            }
-            int contt=0;
-            //Recopilando cada seccion de keywords
-            for (String s: structure.getKeywordsContent()) {
-                contt++;
-                s=s.replace(" ", "");
-                if(!s.contains("=")){
-                    //result = 11;
-                    error = new ErrorType(11, contt+keywInit);
-                    return error;
-                }else if(!(String.valueOf(s.charAt(s.length()-1))).equals(".")){
-                    //result = 12;
-                    error = new ErrorType(12, contt+keywInit);
-                    return error;
-                }else{
-                    String[] parts = s.split("=");
-                    if(!simulacionAFDdirecto(ident, parts[0])){
-                        //result = 13;
-                        error = new ErrorType(13, contt+keywInit);
+                int contt=0;
+                //Recopilando cada seccion de keywords
+                for (String s: structure.getKeywordsContent()) {
+                    contt++;
+                    s=s.replace(" ", "");
+                    if(!s.contains("=")){
+                        //result = 11;
+                        error = new ErrorType(11, contt+keywInit);
                         return error;
-                    }
-                    parts[1]=parts[1].replace(".", "");
-                    if(!simulacionAFDdirecto(string, parts[1])){
-                        //result = 14;
-                        error = new ErrorType(14, contt+keywInit);
+                    }else if(!(String.valueOf(s.charAt(s.length()-1))).equals(".")){
+                        //result = 12;
+                        error = new ErrorType(12, contt+keywInit);
                         return error;
+                    }else{
+                        String[] parts = s.split("=");
+                        if(!simulacionAFDdirecto(ident, parts[0])){
+                            //result = 13;
+                            error = new ErrorType(13, contt+keywInit);
+                            return error;
+                        }
+                        parts[1]=parts[1].replace(".", "");
+                        if(!simulacionAFDdirecto(string, parts[1])){
+                            //result = 14;
+                            error = new ErrorType(14, contt+keywInit);
+                            return error;
+                        }
                     }
                 }
             }
         }
+
 
         //Verificando la seccion de Tokens
         //ArrayList<String>  tokensContent = new ArrayList<>();
@@ -1018,56 +1027,58 @@ public class Operaciones {
                 error = new ErrorType(15, tokensInit);
                 return error;
             }
-
-        }
-
-        //Obteniendo el contenido de tokens
-        for (int i=tokensInit; i<fileContent.size();i++) {
-            if(i>tokensInit && i<fileContent.size()-1){
-                if(fileContent.get(i).contains("IGNORE")){
-                    ignoreLine=i;
-                    i=fileContent.size();
-                }else{
-                    structure.getTokensContent().add(fileContent.get(i));
-                    //tokensContent.add(fileContent.get(i));
+            //Obteniendo el contenido de tokens
+            for (int i=tokensInit; i<fileContent.size();i++) {
+                if(i>tokensInit && i<fileContent.size()-1){
+                    if(fileContent.get(i).contains("IGNORE")){
+                        ignoreLine=i;
+                        i=fileContent.size();
+                    }else{
+                        structure.getTokensContent().add(fileContent.get(i));
+                        //tokensContent.add(fileContent.get(i));
+                    }
                 }
             }
-        }
 
-        //Verificando cada Token
-        /*
-        int contadorTokens=0;
-        for (String s: structure.getTokensContent()) {
-            s=s.replace(" ", "");
-            contadorTokens++;
-            if(s.contains("=")){
-                String[] tokenParts = s.split("=");
-                //Verificando el ident del token
-                if(!simulacionAFDdirecto(ident, tokenParts[0])){
-                    //result = 16;
-                    error= new ErrorType(16, contadorTokens+tokensInit);
-                    return error;
-                }
-                if(!tokenParts[1].contains(".")){
-                    //result = 17;
-                    error= new ErrorType(17, contadorTokens+tokensInit);
-                    return error;
+            //Verificando cada Token
+            ///*
+            int contadorTokens=0;
+            for (String s: structure.getTokensContent()) {
+                s=s.replace(" ", "");
+                contadorTokens++;
+                if(s.contains("=")){
+                    String[] tokenParts = s.split("=");
+                    //Verificando el ident del token
+                    if(!simulacionAFDdirecto(ident, tokenParts[0])){
+                        //result = 16;
+                        error= new ErrorType(16, contadorTokens+tokensInit);
+                        return error;
+                    }
+                    if(!tokenParts[1].contains(".")){
+                        //result = 17;
+                        error= new ErrorType(17, contadorTokens+tokensInit);
+                        return error;
+                    }else{
+                        tokenParts[1]=tokenParts[1].replace(".", "");
+                        if(!TokenExpr(tokenParts[1],string, ident, charV)){
+                            error = new ErrorType(18, contadorTokens+tokensInit);
+                            return error;
+                        }
+                    }
                 }else{
-                    tokenParts[1]=tokenParts[1].replace(".", "");
-                    if(!TokenExpr(tokenParts[1],string, ident, charV)){
-                        error = new ErrorType(18, contadorTokens+tokensInit);
+                    //Entra aqui si el token solamente es un identificador
+                    if(!simulacionAFDdirecto(ident, s)){
+                        //result = 16;
+                        error= new ErrorType(16, contadorTokens+tokensInit);
                         return error;
                     }
                 }
-            }else{
-                //Entra aqui si el token solamente es un identificador
-                if(!simulacionAFDdirecto(ident, s)){
-                    //result = 16;
-                    error= new ErrorType(16, contadorTokens+tokensInit);
-                    return error;
-                }
             }
-        }*/
+
+        }
+
+
+        ///*
         //Obteniendo los ignores
         if(ignoreLine!=0){
             String ignore  = fileContent.get(ignoreLine);
@@ -1145,10 +1156,11 @@ public class Operaciones {
     public boolean CHAR(String cadena, AutomataDFA charV, AutomataDFA number){
         String caracter="";
         String cadenaChar="";
+        String separador="..";
         boolean correcto = false;
 
         if(cadena.contains("..")){
-            String[] parts = cadena.split("=");
+            String[] parts = cadena.split("\\.\\.");
             if(Char(parts[0], charV, number) && Char(parts[1], charV, number)){
                 correcto=true;
             }
@@ -1211,6 +1223,39 @@ public class Operaciones {
         return correcto;
     }
 
+    public boolean llavesIguales(String cadena){
+        boolean correcto=false;
+        int contLlaves=0;
+        int contCorchete=0;
+        int contParentesis=0;
+        for(int i=0; i<cadena.length();i++){
+            String caracter=String.valueOf(cadena.charAt(i));
+            if(caracter.equals("(")){
+                contParentesis++;
+            }
+            if(caracter.equals("{")){
+                contLlaves++;
+            }
+            if(caracter.equals("[")){
+                contCorchete++;
+            }
+            if(caracter.equals(")")){
+                contParentesis--;
+            }
+            if(caracter.equals("}")){
+                contLlaves--;
+            }
+            if(caracter.equals("]")){
+                contCorchete--;
+            }
+        }
+
+        if(contCorchete==0 && contParentesis==0 && contLlaves==0){
+            correcto=true;
+        }
+        return correcto;
+    }
+
     public boolean TokenExpr(String linea, AutomataDFA string, AutomataDFA ident, AutomataDFA charV){
         boolean correcto = false;
         String caracter="";
@@ -1224,15 +1269,19 @@ public class Operaciones {
                 cadenaTT+=caracter;
                 indicador =i;
             }else{
-                String parte1 = linea.substring(0, indicador+1);
-                String parte2 = linea.substring(indicador+2);
-                if(TokenTerm(parte1, string, ident, charV) && TokenExpr(parte2, string, ident, charV)){
-                    correcto=true;
+                if(llavesIguales(cadenaTT)){
+                    String parte1 = linea.substring(0, indicador+1);
+                    String parte2 = linea.substring(indicador+2, linea.length());
+                    if(TokenTerm(parte1, string, ident, charV) && TokenTerm(parte2, string, ident, charV)){
+                        correcto=true;
+                    }
+                }else{
+                    if(TokenTerm(linea, string, ident, charV )){
+                        correcto=true;
+                        return correcto;
+                    }
                 }
             }
-        }
-        if(TokenTerm(cadenaTT, string, ident, charV )){
-            correcto=true;
         }
 
         return correcto;
@@ -1240,6 +1289,23 @@ public class Operaciones {
 
     public boolean TokenTerm(String cadena, AutomataDFA string, AutomataDFA ident, AutomataDFA charV){
         boolean correcto = false;
+        String firstTokenFactor="";
+        String secondTokenFactor="";
+        String caracter="";
+        int indicador=0;
+        for (int i=0; i<cadena.length();i++){
+            caracter=String.valueOf(cadena.charAt(i));
+            if(!caracter.equals("(") && !caracter.equals("{") && !caracter.equals("[")){
+                firstTokenFactor+=caracter;
+                indicador=i;
+            }else{
+                String parte1 = cadena.substring(0, indicador+1);
+                String parte2 = cadena.substring(indicador+1);
+                if(TokenFactor(parte1, string, ident, charV) && TokenFactor(parte2, string, ident, charV)){
+                    correcto=true;
+                }
+            }
+        }
         if(TokenFactor(cadena, string, ident, charV)){
             correcto=true;
         }
@@ -1249,7 +1315,7 @@ public class Operaciones {
     public boolean TokenFactor(String cadena, AutomataDFA string, AutomataDFA ident, AutomataDFA charV){
         String firstCharacter = String.valueOf(cadena.charAt(0));
         String lastCharacter = String.valueOf(cadena.charAt(cadena.length()-1));
-        String subString = cadena.substring(1, cadena.length());
+        String subString = cadena.substring(1, cadena.length()-1);
         boolean correcto = false;
 
         if(firstCharacter.equals("(") && lastCharacter.equals(")")){

@@ -141,7 +141,8 @@ MainPF2{
         System.out.println("Ingrese el nombre del archivo con la especificación léxica en Cocol: ");
         String nombreDelArchivo=scanner.nextLine();
 
-        String path1 = System.getProperty("user.dir") + "\\"+nombreDelArchivo+"";
+        String path1 = System.getProperty("user.dir") + "/"+nombreDelArchivo+"";
+        System.out.println(path1);
         ArrayList<String> fileContent2 = operacion.fileReader(path1);
         ErrorType error = operacion.recorrido(fileContent2, ident, string, charV, number, structure);
         int errorNumber = error.getErrorNumber();
